@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export default class API {
-    static URL = '__URL__'
+    static URL = 'https://api-simple-mysql-viewer.clbteam.com/api/v1/'
 
     //static URL = 'http://localhost:8080'
 

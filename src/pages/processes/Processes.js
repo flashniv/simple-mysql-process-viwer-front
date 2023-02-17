@@ -1,7 +1,8 @@
 import React, {useEffect, useState} from "react";
 import API from "../../API/API";
-import {Alert, Backdrop, Box, CircularProgress, TextField} from "@mui/material";
+import {Alert, Backdrop, Box, CircularProgress, Tab, Tabs, TextField} from "@mui/material";
 import {Chart} from "react-google-charts";
+import MyTable from "./MyTable";
 
 // [
 //     {
@@ -67,15 +68,15 @@ function sortFunc(a, b) {
     return 0
 }
 
-function filterFunc(query,filter) {
-    const startDate=new Date(query.start).getTime()
-    const stopDate=(query.stop!==null?new Date(query.stop).getTime():new Date().getTime())
-    return stopDate-startDate>=filter*1000
+function filterFunc(query, filter) {
+    const startDate = new Date(query.start).getTime()
+    const stopDate = (query.stop !== null ? new Date(query.stop).getTime() : new Date().getTime())
+    return stopDate - startDate >= filter * 1000
 }
 
-function getData(queries,filter) {
+function getData(queries, filter) {
     let res = [columns]
-    queries.filter(query => filterFunc(query,filter)).sort(sortFunc).map((query) => {
+    queries.filter(query => filterFunc(query, filter)).sort(sortFunc).map((query) => {
         if (query.stop === null) {
             query.stop = new Date()
         }
@@ -86,7 +87,8 @@ function getData(queries,filter) {
 
 export default function Processes({setTitle, setAlert, loggedIn}) {
     const [queries, setQueries] = useState(undefined)
-    const [filter,setFilter] = useState(10)
+    const [filter, setFilter] = useState(10)
+    const [curTab, setCurTab] = useState(0)
 
     function updateQueries() {
         API.getProcesses((data) => {
@@ -120,7 +122,35 @@ export default function Processes({setTitle, setAlert, loggedIn}) {
                             onChange={event => setFilter(event.target.value)}
                         />
                     </Box>
-                    <Chart chartType="Timeline" data={getData(queries,filter)} width="100%" height="1800px"/>
+                    {getData(queries, filter).length > 1
+                        ? <>
+                            <Box sx={{borderBottom: 1, borderColor: 'divider'}}>
+                                <Tabs value={curTab} onChange={(e, newVal) => setCurTab(newVal)}
+                                      aria-label="basic tabs example">
+                                    <Tab label="Graph"/>
+                                    <Tab label="Table"/>
+                                </Tabs>
+                            </Box>
+                            {curTab === 0
+                                ? <Chart chartType="Timeline" data={getData(queries, filter)} width="100%"
+                                         height="1800px"/>
+                                : <MyTable queries={queries} filter={filter}/>
+                            }
+                        </>
+                        : <Box
+                            sx={{
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                minHeight: "300px",
+                                fontSize: "xxx-large",
+                                fontWeight: "bold",
+                                color: "lightgray"
+                            }}
+                        >
+                            No data found
+                        </Box>
+                    }
                 </>
                 : <Backdrop open={true} sx={{color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1}}>
                     <CircularProgress color="inherit"/>
